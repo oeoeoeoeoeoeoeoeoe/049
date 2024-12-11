@@ -1,0 +1,109 @@
+import tkinter as tk
+from tkinter import messagebox
+import csv
+from datetime import datetime
+import os
+
+def luu_thong_tin():
+    ma = ma_var.get()
+    ten = ten_var.get()
+    don_vi = don_vi_var.get()
+    chuc_danh = chuc_danh_var.get()
+    ngay_sinh = ngay_sinh_var.get()
+    gioi_tinh = gioi_tinh_var.get()
+    so_cmnd = so_cmnd_var.get()
+    ngay_cap = ngay_cap_var.get()
+    noi_cap = noi_cap_var.get()
+
+    if not all([ma, ten, don_vi, chuc_danh, ngay_sinh, gioi_tinh, so_cmnd, ngay_cap, noi_cap]):
+        messagebox.showwarning("Cảnh báo", "Vui lòng nhập đầy đủ thông tin")
+        return
+
+    with open("nhan_vien.csv", "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([ma, ten, don_vi, chuc_danh, ngay_sinh, gioi_tinh, so_cmnd, ngay_cap, noi_cap])
+
+    messagebox.showinfo("Thông báo", "Lưu thông tin thành công")
+    xoa_truong_nhap()
+
+def xoa_truong_nhap():
+    ma_var.set("")
+    ten_var.set("")
+    don_vi_var.set("")
+    chuc_danh_var.set("")
+    ngay_sinh_var.set("")
+    gioi_tinh_var.set("")
+    so_cmnd_var.set("")
+    ngay_cap_var.set("")
+    noi_cap_var.set("")
+
+def sinh_nhat_hom_nay():
+    hom_nay = datetime.now().strftime("%d/%m/%Y")
+    nhan_vien_sinh_nhat = []
+
+    if os.path.exists("nhan_vien.csv"):
+        with open("nhan_vien.csv", "r") as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if row[4] == hom_nay:
+                    nhan_vien_sinh_nhat.append(row)
+
+    if nhan_vien_sinh_nhat:
+        thong_bao = "\n".join([f"Mã: {nv[0]}, Tên: {nv[1]}" for nv in nhan_vien_sinh_nhat])
+        messagebox.showinfo("Sinh nhật hôm nay", thong_bao)
+    else:
+        messagebox.showinfo("Sinh nhật hôm nay", "Không có nhân viên nào sinh nhật hôm nay")
+
+def xuat_toan_bo_danh_sach():
+    if os.path.exists("nhan_vien.csv"):
+        with open("nhan_vien.csv", "r") as file:
+            reader = csv.reader(file)
+            nhan_vien = sorted(reader, key=lambda x: datetime.strptime(x[4], "%d/%m/%Y"), reverse=True)
+
+        with open("danh_sach_nhan_vien.xlsx", "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Mã", "Tên", "Đơn vị", "Chức danh", "Ngày sinh", "Giới tính", "Số CMND", "Ngày cấp", "Nơi cấp"])
+            writer.writerows(nhan_vien)
+
+        messagebox.showinfo("Thông báo", "Xuất danh sách thành công")
+    else:
+        messagebox.showwarning("Cảnh báo", "Không có dữ liệu để xuất")
+
+root = tk.Tk()
+root.title("Thông tin nhân viên")
+
+tk.Label(root, text="Mã:").grid(row=0, column=0)
+tk.Label(root, text="Tên:").grid(row=1, column=0)
+tk.Label(root, text="Đơn vị:").grid(row=2, column=0)
+tk.Label(root, text="Chức danh:").grid(row=3, column=0)
+tk.Label(root, text="Ngày sinh:").grid(row=4, column=0)
+tk.Label(root, text="Giới tính:").grid(row=5, column=0)
+tk.Label(root, text="Số CMND:").grid(row=6, column=0)
+tk.Label(root, text="Ngày cấp:").grid(row=7, column=0)
+tk.Label(root, text="Nơi cấp:").grid(row=8, column=0)
+
+ma_var = tk.StringVar()
+ten_var = tk.StringVar()
+don_vi_var = tk.StringVar()
+chuc_danh_var = tk.StringVar()
+ngay_sinh_var = tk.StringVar()
+gioi_tinh_var = tk.StringVar()
+so_cmnd_var = tk.StringVar()
+ngay_cap_var = tk.StringVar()
+noi_cap_var = tk.StringVar()
+
+tk.Entry(root, textvariable=ma_var).grid(row=0, column=1)
+tk.Entry(root, textvariable=ten_var).grid(row=1, column=1)
+tk.Entry(root, textvariable=don_vi_var).grid(row=2, column=1)
+tk.Entry(root, textvariable=chuc_danh_var).grid(row=3, column=1)
+tk.Entry(root, textvariable=ngay_sinh_var).grid(row=4, column=1)
+tk.Entry(root, textvariable=gioi_tinh_var).grid(row=5, column=1)
+tk.Entry(root, textvariable=so_cmnd_var).grid(row=6, column=1)
+tk.Entry(root, textvariable=ngay_cap_var).grid(row=7, column=1)
+tk.Entry(root, textvariable=noi_cap_var).grid(row=8, column=1)
+
+tk.Button(root, text="Lưu thông tin", command=luu_thong_tin).grid(row=9, column=0, pady=10)
+tk.Button(root, text="Sinh nhật hôm nay", command=sinh_nhat_hom_nay).grid(row=9, column=1, pady=10)
+tk.Button(root, text="Xuất toàn bộ danh sách", command=xuat_toan_bo_danh_sach).grid(row=10, column=0, columnspan=2, pady=10)
+
+root.mainloop()
